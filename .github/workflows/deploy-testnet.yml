@@ -4,200 +4,287 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy_public_bootnode:
+  # deploy_public_bootnode:
 
-    environment: testnet
+  #   environment: testnet
 
-    runs-on: ubuntu-latest
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: "recursive"
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: "recursive"
 
-    - name: Install system deps
-      run: sudo apt-get install jq
+  #   - name: Install system deps
+  #     run: sudo apt-get install jq
     
-    - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh/
-        touch ~/.ssh/known_hosts
-        ssh-keyscan ${{ secrets.BOOTNODE_HOST }} >> ~/.ssh/known_hosts
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        eval $(ssh-agent)
+  #   - name: Set up SSH
+  #     run: |
+  #       mkdir -p ~/.ssh/
+  #       touch ~/.ssh/known_hosts
+  #       ssh-keyscan ${{ secrets.BOOTNODE_HOST }} >> ~/.ssh/known_hosts
+  #       echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+  #       chmod 600 ~/.ssh/id_rsa
+  #       eval $(ssh-agent)
 
-    - name: Authenticate GitHub CLI and download latest release of chainspec
-      run: |
-        gh auth login --with-token <<< "${{ secrets.ACCESS_TOKEN }}"
-        LATEST_RELEASE=$(gh release list --repo ${{ secrets.ATLETA_REPO }} --json tagName,createdAt --jq '.[] | select(.tagName | startswith("testnet")) | .tagName' | sort -r | head -n 1)
-        echo "${LATEST_RELEASE}"
-        gh release download "${LATEST_RELEASE}" --repo ${{ secrets.ATLETA_REPO }} --pattern "chain-spec.testnet.json" --dir chainspecs
+  #   - name: Authenticate GitHub CLI and download latest release of chainspec
+  #     run: |
+  #       gh auth login --with-token <<< "${{ secrets.ACCESS_TOKEN }}"
+  #       LATEST_RELEASE=$(gh release list --repo ${{ secrets.ATLETA_REPO }} --json tagName,createdAt --jq '.[] | select(.tagName | startswith("testnet")) | .tagName' | sort -r | head -n 1)
+  #       echo "${LATEST_RELEASE}"
+  #       gh release download "${LATEST_RELEASE}" --repo ${{ secrets.ATLETA_REPO }} --pattern "chain-spec.testnet.json" --dir chainspecs
 
-    - name: Copy files to the server
-      run: |
-        scp testnet/run-bootnode.sh ${{ secrets.BOOTNODE_USER }}@${{ secrets.BOOTNODE_HOST }}:~/atleta/run.sh
-        scp chainspecs/chain-spec.testnet.json ${{ secrets.BOOTNODE_USER }}@${{ secrets.BOOTNODE_HOST }}:~/atleta/chainspec.json
+  #   - name: Copy files to the server
+  #     run: |
+  #       scp testnet/run-bootnode.sh ${{ secrets.BOOTNODE_USER }}@${{ secrets.BOOTNODE_HOST }}:~/atleta/run.sh
+  #       scp chainspecs/chain-spec.testnet.json ${{ secrets.BOOTNODE_USER }}@${{ secrets.BOOTNODE_HOST }}:~/atleta/chainspec.json
 
-    - name: Run bootnode
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.BOOTNODE_HOST }}
-        username: ${{ secrets.BOOTNODE_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd ~/atleta
-          ./run.sh "atletanetwork/atleta-node:testnet-latest" ${{ secrets.BOOTNODE_P2P_ADDRESS }}
+  #   - name: Run bootnode
+  #     uses: appleboy/ssh-action@v1.0.0
+  #     with:
+  #       host: ${{ secrets.BOOTNODE_HOST }}
+  #       username: ${{ secrets.BOOTNODE_USER }}
+  #       key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #       script: |
+  #         cd ~/atleta
+  #         ./run.sh "atletanetwork/atleta-node:testnet-latest" ${{ secrets.BOOTNODE_P2P_ADDRESS }}
 
-  # deploy the validators, which are predefined in the chainspec
-  deploy_technical_validators:
+  # # deploy the validators, which are predefined in the chainspec
+  # deploy_technical_validators:
 
-    runs-on: ubuntu-latest
-    environment: testnet
+  #   runs-on: ubuntu-latest
+  #   environment: testnet
 
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: "recursive"
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: "recursive"
 
-    - name: Install system deps
-      run: sudo apt-get install jq 
+  #   - name: Install system deps
+  #     run: sudo apt-get install jq 
 
-    - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh/
-        touch ~/.ssh/known_hosts
-        ssh-keyscan ${{ secrets.TECHNICAL_HOST }} >> ~/.ssh/known_hosts
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        eval $(ssh-agent)
+  #   - name: Set up SSH
+  #     run: |
+  #       mkdir -p ~/.ssh/
+  #       touch ~/.ssh/known_hosts
+  #       ssh-keyscan ${{ secrets.TECHNICAL_HOST }} >> ~/.ssh/known_hosts
+  #       echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+  #       chmod 600 ~/.ssh/id_rsa
+  #       eval $(ssh-agent)
 
-    - name: Authenticate GitHub CLI and download latest release of chainspec
-      run: |
-        gh auth login --with-token <<< "${{ secrets.ACCESS_TOKEN }}"
-        LATEST_RELEASE=$(gh release list --repo ${{ secrets.ATLETA_REPO }} --json tagName,createdAt --jq '.[] | select(.tagName | startswith("testnet")) | .tagName' | sort -r | head -n 1)
-        echo "${LATEST_RELEASE}"
-        gh release download "${LATEST_RELEASE}" --repo ${{ secrets.ATLETA_REPO }} --pattern "chain-spec.testnet.json" --dir chainspecs
+  #   - name: Authenticate GitHub CLI and download latest release of chainspec
+  #     run: |
+  #       gh auth login --with-token <<< "${{ secrets.ACCESS_TOKEN }}"
+  #       LATEST_RELEASE=$(gh release list --repo ${{ secrets.ATLETA_REPO }} --json tagName,createdAt --jq '.[] | select(.tagName | startswith("testnet")) | .tagName' | sort -r | head -n 1)
+  #       echo "${LATEST_RELEASE}"
+  #       gh release download "${LATEST_RELEASE}" --repo ${{ secrets.ATLETA_REPO }} --pattern "chain-spec.testnet.json" --dir chainspecs
       
-    - name: Make Keys File
-      run: |
-        echo "${{ secrets.DEV_ACCOUNTS_KEYS }}" > testnet.keys.env
+  #   - name: Make Keys File
+  #     run: |
+  #       echo "${{ secrets.DEV_ACCOUNTS_KEYS }}" > testnet.keys.env
 
-    - name: Copy Files to Server
-      run: |
-        scp testnet/docker-compose.yml ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/docker-compose.yml
-        scp add-session-keys.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/add-session-keys.sh
-        scp testnet/run-technical-validators.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/run.sh
-        scp testnet.keys.env ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/testnet.keys.env
-        scp chainspecs/chain-spec.testnet.json ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/chainspec.json
-        scp utils/backup_script/run_backup.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/run_backup.sh
+  #   - name: Copy Files to Server
+  #     run: |
+  #       scp testnet/docker-compose.yml ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/docker-compose.yml
+  #       scp add-session-keys.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/add-session-keys.sh
+  #       scp testnet/run-technical-validators.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/run.sh
+  #       scp testnet.keys.env ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/testnet.keys.env
+  #       scp chainspecs/chain-spec.testnet.json ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/chainspec.json
+  #       scp utils/backup_script/run_backup.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/run_backup.sh
 
-    - name: SSH into Server and Deploy
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.TECHNICAL_HOST }}
-        username: ${{ secrets.TECHNICAL_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd /sportchain
-          docker compose down
-          docker compose pull
-          ./run.sh testnet.keys.env
+  #   - name: SSH into Server and Deploy
+  #     uses: appleboy/ssh-action@v1.0.0
+  #     with:
+  #       host: ${{ secrets.TECHNICAL_HOST }}
+  #       username: ${{ secrets.TECHNICAL_USER }}
+  #       key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #       script: |
+  #         cd /sportchain
+  #         docker compose down
+  #         docker compose pull
+  #         ./run.sh testnet.keys.env
+
+  # deploy_validators:
+
+  #   needs: 
+  #     - deploy_technical_validators # technical validators have private bootnode
+
+  #   environment: testnet
+
+  #   runs-on: ubuntu-latest
+
+  #   strategy:
+  #     matrix:
+  #       include:
+
+  #         - host_key: VALIDATOR_1_HOST
+  #           user_key: VALIDATOR_1_USER
+  #           priv_key_key: VALIDATOR_1_PRIV_KEY
+
+  #         - host_key: VALIDATOR_2_HOST
+  #           user_key: VALIDATOR_2_USER
+  #           priv_key_key: VALIDATOR_2_PRIV_KEY
+
+  #         - host_key: VALIDATOR_3_HOST
+  #           user_key: VALIDATOR_3_USER
+  #           priv_key_key: VALIDATOR_3_PRIV_KEY
+
+  #         - host_key: VALIDATOR_4_HOST
+  #           user_key: VALIDATOR_4_USER
+  #           priv_key_key: VALIDATOR_4_PRIV_KEY
+
+  #         - host_key: VALIDATOR_5_HOST
+  #           user_key: VALIDATOR_5_USER
+  #           priv_key_key: VALIDATOR_5_PRIV_KEY
+
+  #         - host_key: VALIDATOR_6_HOST
+  #           user_key: VALIDATOR_6_USER
+  #           priv_key_key: VALIDATOR_6_PRIV_KEY
+
+  #         - host_key: VALIDATOR_7_HOST
+  #           user_key: VALIDATOR_7_USER
+  #           priv_key_key: VALIDATOR_7_PRIV_KEY
+
+  #         - host_key: VALIDATOR_8_HOST
+  #           user_key: VALIDATOR_8_USER
+  #           priv_key_key: VALIDATOR_8_PRIV_KEY
+
+  #         - host_key: VALIDATOR_9_HOST
+  #           user_key: VALIDATOR_9_USER
+  #           priv_key_key: VALIDATOR_9_PRIV_KEY
+
+  #         - host_key: VALIDATOR_10_HOST
+  #           user_key: VALIDATOR_10_USER
+  #           priv_key_key: VALIDATOR_10_PRIV_KEY
+
+  #         - host_key: VALIDATOR_11_HOST
+  #           user_key: VALIDATOR_11_USER
+  #           priv_key_key: VALIDATOR_11_PRIV_KEY
+
+  #         - host_key: VALIDATOR_12_HOST
+  #           user_key: VALIDATOR_12_USER
+  #           priv_key_key: VALIDATOR_12_PRIV_KEY
+
+  #         - host_key: VALIDATOR_13_HOST
+  #           user_key: VALIDATOR_13_USER
+  #           priv_key_key: VALIDATOR_13_PRIV_KEY
+
+  #         - host_key: VALIDATOR_14_HOST
+  #           user_key: VALIDATOR_14_USER
+  #           priv_key_key: VALIDATOR_14_PRIV_KEY
+
+  #         - host_key: VALIDATOR_15_HOST
+  #           user_key: VALIDATOR_15_USER
+  #           priv_key_key: VALIDATOR_15_PRIV_KEY
+
+  #         - host_key: VALIDATOR_16_HOST
+  #           user_key: VALIDATOR_16_USER
+  #           priv_key_key: VALIDATOR_16_PRIV_KEY
+
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: "recursive"
+
+  #   - name: Install system deps
+  #     run: sudo apt-get install jq 
+
+  #   - name: Set up SSH
+  #     run: |
+  #       mkdir -p ~/.ssh/
+  #       touch ~/.ssh/known_hosts
+  #       ssh-keyscan ${{ secrets[matrix.host_key ]}} >> ~/.ssh/known_hosts
+  #       echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+  #       chmod 600 ~/.ssh/id_rsa
+  #       eval $(ssh-agent)
+  #       ssh-add ~/.ssh/id_rsa
+
+  #   - name: Authenticate GitHub CLI and download latest release of chainspec
+  #     run: |
+  #       gh auth login --with-token <<< "${{ secrets.ACCESS_TOKEN }}"
+  #       LATEST_RELEASE=$(gh release list --repo ${{ secrets.ATLETA_REPO }} --json tagName,createdAt --jq '.[] | select(.tagName | startswith("testnet")) | .tagName' | sort -r | head -n 1)
+  #       echo "${LATEST_RELEASE}"
+  #       gh release download "${LATEST_RELEASE}" --repo ${{ secrets.ATLETA_REPO }} --pattern "chain-spec.testnet.json" --dir chainspecs
+     
+
+  #   - name: Generate config.env
+  #     run: |
+  #       mkdir -p deploy
+  #       touch config.env
+  #       echo "PRIVATE_KEY=${{ secrets[matrix.priv_key_key ]}}" >> config.env
+  #       echo "DOCKER_IMAGE=atletanetwork/atleta-node:testnet-latest" >> config.env
+  #       echo "BOOTNODE_ADDRESS=${{ secrets.BOOTNODE_P2P_ADDRESS }}" >> config.env
+
+  #   - name: Copy files to the server
+  #     run: |
+  #       scp testnet/run-validator.sh ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/run.sh
+  #       scp testnet/set_session_keys.js ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/set_session_keys.js
+  #       scp testnet/validate.js ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/validate.js
+  #       scp testnet/validate.sh ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/validate.sh
+  #       scp testnet/revert.sh ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/revert.sh
+  #       scp testnet/package.json ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/package.json
+  #       scp testnet/package-lock.json ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/package-lock.json
+  #       scp config.env ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/config.env
+  #       scp chainspecs/chain-spec.testnet.json ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/chainspec.json
+        
+
+  #   - name: Run the validator
+  #     uses: appleboy/ssh-action@v1.0.0
+  #     with:
+  #       host: ${{ secrets[matrix.host_key] }}
+  #       username: ${{ secrets[matrix.user_key] }}
+  #       key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #       script: |
+  #         cd /home/${{ secrets[matrix.user_key] }}/atleta
+  #         ./run.sh
+
+  # configure_backup:
+
+  #   needs: deploy_validators
+
+  #   environment: testnet
+
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: "recursive"
+
+  #   - name: Set up SSH
+  #     run: |
+  #       mkdir -p ~/.ssh/
+  #       touch ~/.ssh/known_hosts
+  #       ssh-keyscan ${{ secrets.VALIDATOR_16_HOST }} >> ~/.ssh/known_hosts
+  #       echo "${{ secrets.VALIDATOR_16_PRIV_KEY }}" > ~/.ssh/id_rsa
+  #       chmod 600 ~/.ssh/id_rsa
+  #       eval $(ssh-agent)
+
+  #   - name: Copy files to the server
+  #     run: |
+  #       ssh -o StrictHostKeyChecking=no ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }} "mkdir -p /home/${{ secrets.VALIDATOR_16_USER }}/atleta/backup_script"
+  #       ssh -o StrictHostKeyChecking=no ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }} "echo ${{ secrets.GCP_S3_KEY }} > /home/${{ secrets.VALIDATOR_16_USER }}/atleta/backup_script/gcp_key.json"
+  #       scp utils/backup_script/run_backup.sh ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/backup_script/run_backup.sh
 
   deploy_validators:
 
-    needs: 
-      - deploy_technical_validators # technical validators have private bootnode
-
     environment: testnet
 
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        include:
-
-          - host_key: VALIDATOR_1_HOST
-            user_key: VALIDATOR_1_USER
-            priv_key_key: VALIDATOR_1_PRIV_KEY
-
-          - host_key: VALIDATOR_2_HOST
-            user_key: VALIDATOR_2_USER
-            priv_key_key: VALIDATOR_2_PRIV_KEY
-
-          - host_key: VALIDATOR_3_HOST
-            user_key: VALIDATOR_3_USER
-            priv_key_key: VALIDATOR_3_PRIV_KEY
-
-          - host_key: VALIDATOR_4_HOST
-            user_key: VALIDATOR_4_USER
-            priv_key_key: VALIDATOR_4_PRIV_KEY
-
-          - host_key: VALIDATOR_5_HOST
-            user_key: VALIDATOR_5_USER
-            priv_key_key: VALIDATOR_5_PRIV_KEY
-
-          - host_key: VALIDATOR_6_HOST
-            user_key: VALIDATOR_6_USER
-            priv_key_key: VALIDATOR_6_PRIV_KEY
-
-          - host_key: VALIDATOR_7_HOST
-            user_key: VALIDATOR_7_USER
-            priv_key_key: VALIDATOR_7_PRIV_KEY
-
-          - host_key: VALIDATOR_8_HOST
-            user_key: VALIDATOR_8_USER
-            priv_key_key: VALIDATOR_8_PRIV_KEY
-
-          - host_key: VALIDATOR_9_HOST
-            user_key: VALIDATOR_9_USER
-            priv_key_key: VALIDATOR_9_PRIV_KEY
-
-          - host_key: VALIDATOR_10_HOST
-            user_key: VALIDATOR_10_USER
-            priv_key_key: VALIDATOR_10_PRIV_KEY
-
-          - host_key: VALIDATOR_11_HOST
-            user_key: VALIDATOR_11_USER
-            priv_key_key: VALIDATOR_11_PRIV_KEY
-
-          - host_key: VALIDATOR_12_HOST
-            user_key: VALIDATOR_12_USER
-            priv_key_key: VALIDATOR_12_PRIV_KEY
-
-          - host_key: VALIDATOR_13_HOST
-            user_key: VALIDATOR_13_USER
-            priv_key_key: VALIDATOR_13_PRIV_KEY
-
-          - host_key: VALIDATOR_14_HOST
-            user_key: VALIDATOR_14_USER
-            priv_key_key: VALIDATOR_14_PRIV_KEY
-
-          - host_key: VALIDATOR_15_HOST
-            user_key: VALIDATOR_15_USER
-            priv_key_key: VALIDATOR_15_PRIV_KEY
-
-          - host_key: VALIDATOR_16_HOST
-            user_key: VALIDATOR_16_USER
-            priv_key_key: VALIDATOR_16_PRIV_KEY
 
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: "recursive"
 
-    - name: Install system deps
-      run: sudo apt-get install jq 
-
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh/
         touch ~/.ssh/known_hosts
-        ssh-keyscan ${{ secrets[matrix.host_key ]}} >> ~/.ssh/known_hosts
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        ssh-keyscan ${{ secrets.VALIDATOR_16_HOST }} >> ~/.ssh/known_hosts
+        echo "${{ secrets.VALIDATOR_16_PRIV_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         eval $(ssh-agent)
-        ssh-add ~/.ssh/id_rsa
 
     - name: Authenticate GitHub CLI and download latest release of chainspec
       run: |
@@ -206,36 +293,35 @@ jobs:
         echo "${LATEST_RELEASE}"
         gh release download "${LATEST_RELEASE}" --repo ${{ secrets.ATLETA_REPO }} --pattern "chain-spec.testnet.json" --dir chainspecs
      
-
     - name: Generate config.env
       run: |
         mkdir -p deploy
         touch config.env
-        echo "PRIVATE_KEY=${{ secrets[matrix.priv_key_key ]}}" >> config.env
+        echo "PRIVATE_KEY=${{ secrets.VALIDATOR_16_PRIV_KEY }}" >> config.env
         echo "DOCKER_IMAGE=atletanetwork/atleta-node:testnet-latest" >> config.env
         echo "BOOTNODE_ADDRESS=${{ secrets.BOOTNODE_P2P_ADDRESS }}" >> config.env
 
     - name: Copy files to the server
       run: |
-        scp testnet/run-validator.sh ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/run.sh
-        scp testnet/set_session_keys.js ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/set_session_keys.js
-        scp testnet/validate.js ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/validate.js
-        scp testnet/validate.sh ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/validate.sh
-        scp testnet/revert.sh ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/revert.sh
-        scp testnet/package.json ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/package.json
-        scp testnet/package-lock.json ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/package-lock.json
-        scp config.env ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/config.env
-        scp chainspecs/chain-spec.testnet.json ${{ secrets[matrix.user_key] }}@${{ secrets[matrix.host_key] }}:/home/${{ secrets[matrix.user_key] }}/atleta/chainspec.json
+        scp testnet/run-validator.sh ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/run.sh
+        scp testnet/set_session_keys.js ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/set_session_keys.js
+        scp testnet/validate.js ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/validate.js
+        scp testnet/validate.sh ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/validate.sh
+        scp testnet/revert.sh ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/revert.sh
+        scp testnet/package.json ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/package.json
+        scp testnet/package-lock.json ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/package-lock.json
+        scp config.env ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/config.env
+        scp chainspecs/chain-spec.testnet.json ${{ secrets.VALIDATOR_16_USER }}@${{ secrets.VALIDATOR_16_HOST }}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/chainspec.json
         
 
     - name: Run the validator
       uses: appleboy/ssh-action@v1.0.0
       with:
-        host: ${{ secrets[matrix.host_key] }}
-        username: ${{ secrets[matrix.user_key] }}
+        host: ${{ secrets.VALIDATOR_16_HOST }}
+        username: ${{ secrets.VALIDATOR_16_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /home/${{ secrets[matrix.user_key] }}/atleta
+          cd /home/${{ secrets.VALIDATOR_16_USER }}/atleta
           ./run.sh
 
   configure_backup:
