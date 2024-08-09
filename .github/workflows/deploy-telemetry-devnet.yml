@@ -38,8 +38,8 @@ jobs:
 
     - name: Copy Files to Server
       run: |
-        scp utils/telemetry/docker-compose.fill.yml ${{ secrets.TELEMETRY_USERNAME }}@${{ secrets.TELEMETRY_HOST }}:/sportchain/docker-compose.yml
-        scp utils/telemetry/prometheus/prometheus.fill.yml ${{ secrets.TELEMETRY_USERNAME }}@${{ secrets.TELEMETRY_HOST }}:/sportchain/prometheus/prometheus.yml
+        scp -o StrictHostKeyChecking=no utils/telemetry/docker-compose.fill.yml ${{ secrets.TELEMETRY_USERNAME }}@${{ secrets.TELEMETRY_HOST }}:/sportchain/docker-compose.yml
+        scp -o StrictHostKeyChecking=no utils/telemetry/prometheus/prometheus.fill.yml ${{ secrets.TELEMETRY_USERNAME }}@${{ secrets.TELEMETRY_HOST }}:/sportchain/prometheus/prometheus.yml
         
     - name: SSH into Server and Deploy
       uses: appleboy/ssh-action@v1.0.3
